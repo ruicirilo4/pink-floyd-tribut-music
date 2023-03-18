@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - pink floyd tribut music</title>
+  <style>
+/* Adiciona sombras nos álbuns */
+table img {
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Adiciona sombras no player de música */
+#tracks iframe {
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Adiciona retângulos nos nomes das músicas */
+#tracks li a {
+  display: inline-block;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  text-align: left;
+  padding: 8px;
+}
+
+td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+tr:hover {
+  background-color: #ddd;
+}
+
+</style>
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Pink Floyd Discografia</title>
+</head>
+<body>
+  <h1>Pink Floyd Discografia</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Posição</th>
+        <th>Álbum</th>
+        <th>Capa</th>
+      </tr>
+    </thead>
+    <tbody id="albums"></tbody>
+  </table>
+<div class="albums-container"></div>
+  <h2>Tracks</h2>
+  <ul id="tracks"></ul>
+  
+  
+</div>
+
+  </body>
+</html>
+<!-- partial -->
+  <script>
+const apiKey = 'AIzaSyBihnXKUmx9h6DHAlTNkrZ-6znzrz3ME1M';
+const artistName = 'Pink Floyd';
+const lastfmApiKey = 'fb5daac5ce459db403f5cd24c9ddc04a';
+
+const albumsTable = document.querySelector('table');
+const tracksList = document.getElementById('tracks');
+
+albumsTable.addEventListener('click', event => {
+  const target = event.target;
+  if (target.tagName === 'IMG') {
+    const albumName = target.alt;
+
+    fetch(`https://ws.audioscrobbler.com/2.0/?method=album.getinfo&artist=${artistName}&album=${albumName}&api_key=${lastfmApiKey}&format=json`)
+      .then(response => response.json())
+      .then(data => {
+        const tracks = data.album.tracks.track;
+        tracksList.innerHTML = '';
+
+        for (let i = 0; i < tracks.length; i++) {
+          const track = tracks[i];
+          const trackName = track.name;
+          const trackURL = track.url;
+
+          const listItem = document.createElement('li');
+          const link = document.createElement('a');
+
+          link.href = '#';
+          link.textContent = trackName;
+
+          link.addEventListener('click', () => {
+             
+            const query = `${artistName} ${trackName}`;
+            fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&key=${apiKey}`)
+              .then(response => response.json())
+              .then(data => {
+                const videoId = data.items[0].id.videoId;
+                const iframe = document.createElement('iframe');
+
+                iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                iframe.width = '640';
+                iframe.height = '360';
+
+                tracksList.innerHTML = '';
+                tracksList.appendChild(iframe);
+                tracksList.scrollIntoView({behavior: "smooth"});
+                
+              })
+              .catch(error => console.error(error));
+          });
+
+          listItem.appendChild(link);
+          tracksList.appendChild(listItem);
+        }
+      })
+      .catch(error => console.error(error));
+  }
+});
+
+fetch(`https://ws.audioscrobbler.com/2.0/?method=artist.gettopalbums&artist=${artistName}&api_key=${lastfmApiKey}&format=json`)
+  .then(response => response.json())
+  .then(data => {
+    const albums = data.topalbums.album;
+    const tableBody = document.getElementById('albums');
+
+    for (let i = 0; i < albums.length; i++) {
+      const album = albums[i];
+      const position = i + 1;
+      const albumName = album.name;
+      const albumImage = album.image[2]['#text'];
+
+      const row = document.createElement('tr');
+      const positionCell = document.createElement('td');
+      const nameCell = document.createElement('td');
+      const imageCell = document.createElement('td');
+      const image = document.createElement('img');
+
+      positionCell.textContent = position;
+      nameCell.textContent = albumName;
+      image.src = albumImage;
+      image.alt = albumName;
+
+      row.appendChild(positionCell);
+      row.appendChild(nameCell);
+      imageCell.appendChild(image);
+      row.appendChild(imageCell);
+
+    row.addEventListener('click', () => {
+    row.scrollIntoView({ behavior: "smooth" });
+  });
+      
+      tableBody.appendChild(row);
+      
+      
+    }
+  })
+  .catch(error => console.error(error));
+
+</script>
+
+</body>
+</html>
